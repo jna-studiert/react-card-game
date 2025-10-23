@@ -53,24 +53,38 @@ export default function StartModal({
                             Стенка на стенку
                         </span>
                     </h2>
-                    <button
-                        onClick={handlePlayClick}
-                        className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition"
-                    >
-                        Играть
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handlePlayClick}
+                            className="px-6 py-3 bg-[#1b8142] text-white rounded-xl hover:bg-[#31b162] transition"
+                        >
+                            Играть
+                        </button>
+                        <button
+                            onClick={() => onFinish('player')}
+                            className="px-6 py-3 bg-[#1b8142] text-white rounded-xl hover:bg-[#31b162] transition"
+                        >
+                            Игрок
+                        </button>
+                        <button
+                            onClick={() => onFinish('computer')}
+                            className="px-6 py-3 bg-[#1b8142] text-white rounded-xl hover:bg-[#31b162] transition"
+                        >
+                            Компьютер
+                        </button>
+                    </div>
                 </div>
             )}
 
             {stage === 'arrow' && (
-                <div className="bg-white relative flex justify-center aspect-square rounded-full w-87 p-6">
+                <div className="bg-white relative flex justify-center aspect-square rounded-full w-60 p-6">
                     <div
                         className={`arrow ${spinning ? 'spinning' : ''}`}
                         style={{
                             transform: `rotate(${rotation}deg)`,
                         }}
                     >
-                        <div className="arrow-top" />
+                        <div className="arrow-gradient" />
                         <div className="arrow-bottom" />
                     </div>
                     <div className="arrow-pin" />

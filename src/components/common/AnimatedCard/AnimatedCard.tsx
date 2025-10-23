@@ -1,13 +1,15 @@
 import Card from '../Card/Card';
 import './styles.css';
+import { useRef } from 'react';
 
 interface AnimatedCardProps {
     value: number | null;
     isMoving: boolean;
     isFlipping: boolean;
     isFrontUp?: boolean;
-    delay?: number;
-    duration?: number;
+    flyDelay?: number;
+    flippingDuration?: number;
+    flyDuration?: number;
     onAnimationEnd?: () => void;
     startPosition: { x: number; y: number };
     positionToMove: { x: number; y: number };
@@ -19,13 +21,16 @@ export default function AnimatedCard({
     isMoving,
     isFlipping,
     isFrontUp = false,
-    delay = 0,
-    duration = 1,
+    flyDelay = 0,
+    flippingDuration = 0.6,
+    flyDuration = 1,
     startPosition,
     positionToMove,
     size,
     onAnimationEnd,
 }: AnimatedCardProps) {
+    const hasEnded = useRef(false);
+
     const wrapperStyle = {
         width: `${size.width}px`,
         height: `${size.height}px`,
@@ -33,9 +38,17 @@ export default function AnimatedCard({
         top: `${startPosition.y}px`,
         '--transition-x': `${positionToMove.x}px`,
         '--transition-y': `${positionToMove.y}px`,
-        '--animation-duration': `${duration}s`,
-        '--animation-delay': `${delay}s`,
+        '--fly-animation-duration': `${flyDuration}s`,
+        '--fly-animation-delay': `${flyDelay}s`,
+        '--flipping-animation-duration': `${flippingDuration}s`,
     } as React.CSSProperties;
+
+    const handleAnimationEnd = () => {
+        if (hasEnded.current) return;
+        hasEnded.current = true;
+
+        onAnimationEnd?.();
+    };
 
     return (
         <div
@@ -43,11 +56,7 @@ export default function AnimatedCard({
                 isFlipping ? 'flip' : ''
             }`}
             style={wrapperStyle}
-            onAnimationEnd={() => {
-                if (onAnimationEnd) {
-                    onAnimationEnd();
-                }
-            }}
+            onAnimationEnd={handleAnimationEnd}
         >
             <Card value={value} isFrontUp={isFrontUp} />
         </div>

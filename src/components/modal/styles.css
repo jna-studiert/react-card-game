@@ -2,20 +2,19 @@
     transition: transform 4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-.arrow-top {
-    width: 0;
-    height: 0;
-    border-left: 50px solid transparent;
-    border-right: 50px solid transparent;
-    border-bottom: 150px solid orange;
+.arrow-gradient {
+    width: 72px;
+    height: 96px;
+    background: linear-gradient(to bottom, #8b5cf6, #ec4899, #f97316);
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
 }
 
 .arrow-bottom {
-    width: 0;
-    height: 0;
-    border-left: 50px solid transparent;
-    border-right: 50px solid transparent;
-    border-top: 100px solid black;
+    width: 72px;
+    height: 72px;
+    background: black;
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    rotate: 180deg;
 }
 
 .arrow-pin {
