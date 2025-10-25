@@ -56,21 +56,9 @@ export default function StartModal({
                     <div className="flex gap-2">
                         <button
                             onClick={handlePlayClick}
-                            className="px-6 py-3 bg-[#1b8142] text-white rounded-xl hover:bg-[#31b162] transition"
+                            className="button-primary"
                         >
                             Играть
-                        </button>
-                        <button
-                            onClick={() => onFinish('player')}
-                            className="px-6 py-3 bg-[#1b8142] text-white rounded-xl hover:bg-[#31b162] transition"
-                        >
-                            Игрок
-                        </button>
-                        <button
-                            onClick={() => onFinish('computer')}
-                            className="px-6 py-3 bg-[#1b8142] text-white rounded-xl hover:bg-[#31b162] transition"
-                        >
-                            Компьютер
                         </button>
                     </div>
                 </div>

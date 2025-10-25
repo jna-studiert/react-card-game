@@ -1,4 +1,4 @@
-import type { AnimationCoordinates, AnimationConfig } from '@/types';
+import type { AnimationCoordinates, AnimationConfig } from '@/utils/types';
 
 export const calculateAnimationCoordinates = (
     config: AnimationConfig
@@ -8,7 +8,7 @@ export const calculateAnimationCoordinates = (
         endRef,
         target = 'player',
         animationType,
-        animationSpeed = 500,
+        animationSpeed = 800,
     } = config;
 
     const fieldRect = startRef.closest('.field')?.getBoundingClientRect();
@@ -16,14 +16,14 @@ export const calculateAnimationCoordinates = (
         throw new Error('Field element not found');
     }
 
-    const deckRect = startRef.getBoundingClientRect();
+    const startRect = startRef.getBoundingClientRect();
     const cardSize = {
         width: startRef.offsetWidth,
         height: startRef.offsetHeight,
     };
 
-    const startX = deckRect.left - fieldRect.left;
-    const startY = deckRect.top - fieldRect.top;
+    const startX = startRect.left - fieldRect.left;
+    const startY = startRect.top - fieldRect.top;
 
     let targetX = 0;
     let targetY = 0;
@@ -32,9 +32,9 @@ export const calculateAnimationCoordinates = (
     switch (animationType) {
         case 'deal':
             if (endRef) {
-                const slotRect = endRef.getBoundingClientRect();
-                targetX = slotRect.left - fieldRect.left;
-                targetY = slotRect.top - fieldRect.top;
+                const endRect = endRef.getBoundingClientRect();
+                targetX = endRect.left - fieldRect.left;
+                targetY = endRect.top - fieldRect.top;
 
                 const translateX = targetX - startX;
                 const translateY = targetY - startY;

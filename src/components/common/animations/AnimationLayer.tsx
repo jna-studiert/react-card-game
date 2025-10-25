@@ -1,5 +1,5 @@
-import type { AnimatedCardType } from '@/types';
-import AnimatedCard from '../common/AnimatedCard/AnimatedCard';
+import type { AnimatedCardType } from '@/utils/types';
+import AnimatedCard from './AnimatedCard';
 
 export default function AnimationLayer({
     playerAnimatedCards,

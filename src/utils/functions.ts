@@ -1,4 +1,4 @@
-import type { SlotType } from '../types';
+import type { SlotType } from './types';
 
 export const createDeck = (numberOfCards: number) => {
     const cards = Array.from({ length: numberOfCards }, (_, i) => i + 1);
@@ -19,6 +19,6 @@ export const checkCanAttack = (slots: SlotType[], activeCard: number) => {
     return activeCard === 1
         ? slots.filter((slot) => slot.cardValue === 5)
         : slots.filter(
-              (slot) => slot.cardValue !== null && slot.cardValue < activeCard
+              (slot) => !!slot.cardValue && slot.cardValue < activeCard
           );
 };

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import type { SlotType, AnimatedCardType } from '@/types';
+import type { SlotType, AnimatedCardType } from '@/utils/types';
 import { checkCanAttack, createDeck } from '@/utils/functions';
 import { calculateAnimationCoordinates } from '@/utils/animationCalculation';
 
@@ -10,6 +10,7 @@ type GamePhase =
     | 'playerTurn_end'
     | 'computerTurn_draw'
     | 'computerTurn_attack'
+    | 'computerTurn_end'
     | 'resolveTurn'
     | 'gameOver';
 
@@ -52,12 +53,9 @@ export const useGameLogic = () => {
             .map((_, i) => ({ id: i + 100, cardValue: null }))
     );
 
-    const [slotsPlayerCanAttack, setSlotsPlayerCanAttack] = useState<
-        SlotType[]
-    >([]);
-    const [slotsComputerCanAttack, setSlotsComputerCanAttack] = useState<
-        SlotType[]
-    >([]);
+    const [slotsCanBeAttacked, setSlotsCanBeAttacked] = useState<SlotType[]>(
+        []
+    );
 
     const [playerDiscardDeck, setPlayerDiscardDeck] = useState<number[]>([]);
     const [computerDiscardDeck, setComputerDiscardDeck] = useState<number[]>(
@@ -69,6 +67,9 @@ export const useGameLogic = () => {
     >([]);
 
     const [showModal, setShowModal] = useState<boolean>(true);
+    const [showEndTurnButton, setShowEndTurnButton] = useState<boolean>(false);
+    const [showDrawCardButton, setShowDrawCardButton] =
+        useState<boolean>(false);
 
     const [gamePhase, setGamePhase] = useState<GamePhase>('dealing');
 
@@ -77,6 +78,7 @@ export const useGameLogic = () => {
         setGamePhase(
             first === 'player' ? 'playerTurn_draw' : 'computerTurn_draw'
         );
+        setShowDrawCardButton(first === 'player');
     };
 
     const dealCards = (target: 'player' | 'computer'): Promise<void> => {
@@ -115,7 +117,7 @@ export const useGameLogic = () => {
                 return;
             }
 
-            const emptySlots = slots.filter((slot) => slot.cardValue === null);
+            const emptySlots = slots.filter((slot) => !slot.cardValue);
             if (!emptySlots.length) {
                 resolve();
                 return;
@@ -191,7 +193,7 @@ export const useGameLogic = () => {
         });
     };
 
-    const dealTopCard = (target: 'player' | 'computer'): Promise<number> => {
+    const drawCard = (target: 'player' | 'computer'): Promise<number> => {
         return new Promise((resolve) => {
             const { deck, setDeck, deckRef, setDrawnCard, setAnimatedCards } =
                 target === 'player'
@@ -251,58 +253,114 @@ export const useGameLogic = () => {
         });
     };
 
-    const handleDrawCard = async () => {
-        if (gamePhase !== 'playerTurn_draw' || playerDrawnCard !== null) return;
+    const handleDrawCard = async (target: 'player' | 'computer') => {
+        setShowDrawCardButton(false);
 
-        const drawnCard = await dealTopCard('player');
-        if (drawnCard === -1) {
-            setGamePhase('playerTurn_end');
-            return;
-        }
+        const { drawnCard, defenseSlots, attackGamePhase } =
+            target === 'player'
+                ? {
+                      drawnCard: await drawCard('player'),
+                      defenseSlots: computerDefenseSlots,
+                      attackGamePhase: 'playerTurn_attack' as GamePhase,
+                  }
+                : {
+                      drawnCard: await drawCard('computer'),
+                      defenseSlots: playerDefenseSlots,
+                      attackGamePhase: 'computerTurn_attack' as GamePhase,
+                  };
 
-        const availableComputerDefenseSlots = computerDefenseSlots.filter(
-            ({ id: computerId }) =>
+        const availableDefenseSlots = defenseSlots.filter(
+            ({ id: defenseCardId }) =>
                 !attackingCardsInSlots.some(
-                    ({ id: attackingId }) => attackingId === computerId
+                    ({ id: attackingCardId }) =>
+                        attackingCardId === defenseCardId
                 )
         );
 
-        const canAttackArray = checkCanAttack(
-            availableComputerDefenseSlots,
-            drawnCard
-        );
+        if (drawnCard === -1) {
+            target === 'player'
+                ? setShowEndTurnButton(true)
+                : setGamePhase('computerTurn_end');
+            return;
+        }
+
+        const canAttackArray = checkCanAttack(availableDefenseSlots, drawnCard);
 
         if (!!canAttackArray.length) {
-            setSlotsPlayerCanAttack(canAttackArray);
-            setGamePhase('playerTurn_attack');
+            setSlotsCanBeAttacked(canAttackArray);
+            setGamePhase(attackGamePhase);
         } else {
-            setGamePhase('playerTurn_end');
+            target === 'player'
+                ? setShowEndTurnButton(true)
+                : setGamePhase('computerTurn_end');
         }
     };
 
-    const handlePlayerAttack = (targetSlotId: number) => {
-        if (gamePhase !== 'playerTurn_attack' || playerDrawnCard === null)
-            return;
-        const targetSlot = computerDefenseSlots.find(
-            (s) => s.id === targetSlotId
-        );
-        const attackSlotRef = computerSlotRefs.current[targetSlotId];
-        if (!targetSlot || targetSlot.cardValue === null || !attackSlotRef)
+    const handleAttack = (
+        target: 'player' | 'computer',
+        targetSlotId?: number
+    ) => {
+        const {
+            drawnCard,
+            drawnCardRef,
+            defenseSlots,
+            slotRefs,
+            setAnimatedCards,
+            setDrawnCard,
+            nextDrawPhase,
+        } =
+            target === 'player'
+                ? {
+                      drawnCard: playerDrawnCard,
+                      drawnCardRef: playerDrawnCardRef,
+                      defenseSlots: computerDefenseSlots,
+                      slotRefs: computerSlotRefs,
+                      setAnimatedCards: setPlayerAnimatedCards,
+                      setDrawnCard: setPlayerDrawnCard,
+                      nextDrawPhase: 'playerTurn_draw' as GamePhase,
+                  }
+                : {
+                      drawnCard: computerDrawnCard,
+                      drawnCardRef: computerDrawnCardRef,
+                      defenseSlots: playerDefenseSlots,
+                      slotRefs: playerSlotRefs,
+                      setAnimatedCards: setComputerAnimatedCards,
+                      setDrawnCard: setComputerDrawnCard,
+                      nextDrawPhase: 'computerTurn_draw' as GamePhase,
+                  };
+
+        if (
+            !drawnCard ||
+            !drawnCardRef.current ||
+            slotsCanBeAttacked.length === 0
+        )
             return;
 
-        const attackCard = playerDrawnCard;
+        const targetSlot =
+            target === 'player'
+                ? defenseSlots.find((s) => s.id === targetSlotId)
+                : slotsCanBeAttacked.reduce((prev, curr) =>
+                      prev.cardValue! > curr.cardValue! ? prev : curr
+                  );
 
-        setSlotsPlayerCanAttack([]);
-        setPlayerDrawnCard(null);
+        if (!targetSlot || !targetSlot.cardValue) return;
+
+        const attackSlotRef = slotRefs.current[targetSlot.id];
+        if (!attackSlotRef) return;
+
+        const attackCard = drawnCard;
+
+        setSlotsCanBeAttacked([]);
+        setDrawnCard(null);
 
         const attackCoordinates = calculateAnimationCoordinates({
-            startRef: playerDrawnCardRef.current!,
+            startRef: drawnCardRef.current,
             endRef: attackSlotRef,
             animationType: 'deal',
         });
 
         const animatedAttackCard: AnimatedCardType = {
-            id: Date.now(),
+            id: Date.now() + 1,
             cardValue: attackCard,
             ...attackCoordinates,
             animationType: 'attack',
@@ -313,60 +371,113 @@ export const useGameLogic = () => {
                 ];
 
                 setAttackingCardsInSlots(newAttackingCards);
-                setPlayerAnimatedCards([]);
-                setGamePhase(
-                    newAttackingCards.length >= computerDefenseSlots.length
-                        ? 'playerTurn_end'
-                        : 'playerTurn_draw'
-                );
+                setAnimatedCards([]);
+
+                if (newAttackingCards.length >= playerDefenseSlots.length)
+                    target === 'player'
+                        ? setShowEndTurnButton(true)
+                        : setGamePhase('computerTurn_end');
+                else setGamePhase(nextDrawPhase);
             },
         };
-        setPlayerAnimatedCards([animatedAttackCard]);
+        setAnimatedCards([animatedAttackCard]);
     };
 
-    const handlePlayerEnd = () => {
+    const handlePlayerEndTurn = () => {
+        setShowEndTurnButton(false);
+        setGamePhase('playerTurn_end');
+    };
+
+    const handleEndTurn = (target: 'player' | 'computer') => {
         let completedCount = 0;
 
-        const cardsToPlayerDiscard: number[] = [];
-        const cardsToPlayerDeck: number[] = [];
+        const {
+            drawnCard,
+            drawnCardRef,
+            attackerDeckRef,
+            defenderDeckRef,
+            discardDeckRef,
+            setAttackerDeck,
+            setDefenderDeck,
+            setDiscardDeck,
+            setDrawnCard,
+            setDefenderSlots,
+            defenseSlots,
+            slotRefs,
+            setAnimatedCards,
+        } =
+            target === 'player'
+                ? {
+                      drawnCard: playerDrawnCard,
+                      drawnCardRef: playerDrawnCardRef.current,
+                      attackerDeckRef: playerDeckRef.current,
+                      defenderDeckRef: computerDeckRef.current,
+                      discardDeckRef: playerDiscardDeckRef.current,
+                      setAttackerDeck: setPlayerDeck,
+                      setDefenderDeck: setComputerDeck,
+                      setDiscardDeck: setPlayerDiscardDeck,
+                      setDrawnCard: setPlayerDrawnCard,
+                      defenseSlots: computerDefenseSlots,
+                      slotRefs: computerSlotRefs,
+                      setDefenderSlots: setComputerSlots,
+                      setAnimatedCards: setPlayerAnimatedCards,
+                  }
+                : {
+                      drawnCard: computerDrawnCard,
+                      drawnCardRef: computerDrawnCardRef.current,
+                      attackerDeckRef: computerDeckRef.current,
+                      defenderDeckRef: playerDeckRef.current,
+                      discardDeckRef: computerDiscardDeckRef.current,
+                      setAttackerDeck: setComputerDeck,
+                      setDefenderDeck: setPlayerDeck,
+                      setDiscardDeck: setComputerDiscardDeck,
+                      setDrawnCard: setComputerDrawnCard,
+                      defenseSlots: playerDefenseSlots,
+                      slotRefs: playerSlotRefs,
+                      setDefenderSlots: setPlayerSlots,
+                      setAnimatedCards: setComputerAnimatedCards,
+                  };
+
+        const cardsToDiscard: number[] = [];
+        const cardsToAttackerDeck: number[] = [];
 
         let allAnimatedCards: AnimatedCardType[] = [];
 
-        if (playerDrawnCard) {
+        if (drawnCard) {
             const coordinates = calculateAnimationCoordinates({
-                startRef: playerDrawnCardRef.current!,
-                endRef: computerDeckRef.current!,
+                startRef: drawnCardRef!,
+                endRef: defenderDeckRef!,
                 animationType: 'deal',
             });
 
-            const playerReturnCard: AnimatedCardType = {
+            const toDefenderCard: AnimatedCardType = {
                 id: Date.now(),
-                cardValue: playerDrawnCard,
+                cardValue: drawnCard,
                 ...coordinates,
                 animationType: 'discard',
                 size: coordinates.size,
                 duration: coordinates.duration,
             };
 
-            allAnimatedCards.push(playerReturnCard);
-            setPlayerDrawnCard(null);
+            allAnimatedCards.push(toDefenderCard);
+            setDrawnCard(null);
         }
 
         const defeatedAnimatedCards: AnimatedCardType[] = attackingCardsInSlots
             .map((attackingCard) => {
-                const defenseCard = computerDefenseSlots.find(
+                const defenseCard = defenseSlots.find(
                     (defense) => defense.id === attackingCard.id
                 );
                 if (!defenseCard) return null;
 
-                const slotRef = computerSlotRefs.current[defenseCard.id];
+                const slotRef = slotRefs.current[defenseCard.id];
                 if (!slotRef) return null;
 
-                cardsToPlayerDeck.push(defenseCard.cardValue!);
+                cardsToAttackerDeck.push(defenseCard.cardValue!);
 
                 const coordinates = calculateAnimationCoordinates({
                     startRef: slotRef,
-                    endRef: playerDeckRef.current!,
+                    endRef: attackerDeckRef!,
                     animationType: 'deal',
                 });
 
@@ -383,14 +494,14 @@ export const useGameLogic = () => {
 
         const attackingAnimatedCards = attackingCardsInSlots
             .map((card) => {
-                const slotRef = computerSlotRefs.current[card.id];
+                const slotRef = slotRefs.current[card.id];
                 if (!slotRef) return null;
 
-                cardsToPlayerDiscard.push(card.cardValue!);
+                cardsToDiscard.push(card.cardValue!);
 
                 const coordinates = calculateAnimationCoordinates({
                     startRef: slotRef,
-                    endRef: playerDiscardDeckRef.current!,
+                    endRef: discardDeckRef!,
                     animationType: 'deal',
                 });
 
@@ -408,22 +519,17 @@ export const useGameLogic = () => {
         const totalAnimations = allAnimatedCards.length;
 
         if (totalAnimations === 0) {
-            if (
-                cardsToPlayerDiscard.length > 0 ||
-                cardsToPlayerDeck.length > 0
-            ) {
-                setPlayerDiscardDeck((prev) => [
-                    ...prev,
-                    ...cardsToPlayerDiscard,
-                ]);
-                setPlayerDeck((prev) => [...prev, ...cardsToPlayerDeck]);
+            if (cardsToDiscard.length > 0 || cardsToAttackerDeck.length > 0) {
+                setDiscardDeck((prev) => [...prev, ...cardsToDiscard]);
+                setAttackerDeck((prev) => [...prev, ...cardsToAttackerDeck]);
             }
             return;
         }
 
         setAttackingCardsInSlots([]);
+
         const defeatedSlotIds = attackingCardsInSlots.map((c) => c.id);
-        setComputerSlots((prev) =>
+        setDefenderSlots((prev) =>
             prev.map((card) => {
                 if (defeatedSlotIds.includes(card.id)) card.cardValue = null;
                 return card;
@@ -437,74 +543,33 @@ export const useGameLogic = () => {
                     completedCount++;
 
                     if (completedCount === totalAnimations) {
-                        if (playerDrawnCard) {
-                            setComputerDeck((prev) => [
-                                ...prev,
-                                playerDrawnCard,
-                            ]);
+                        if (drawnCard) {
+                            setDefenderDeck((prev) => [...prev, drawnCard]);
                         }
 
-                        setPlayerDiscardDeck((prev) => [
+                        setDiscardDeck((prev) => [...prev, ...cardsToDiscard]);
+
+                        setAttackerDeck((prev) => [
                             ...prev,
-                            ...cardsToPlayerDiscard,
+                            ...cardsToAttackerDeck,
                         ]);
 
-                        setPlayerDeck((prev) => [
-                            ...prev,
-                            ...cardsToPlayerDeck,
-                        ]);
-
-                        setPlayerAnimatedCards([]);
-                        dealCards('computer').then(() =>
-                            setGamePhase('computerTurn_draw')
+                        setAnimatedCards([]);
+                        dealCards(
+                            target === 'player' ? 'computer' : 'player'
+                        ).then(() =>
+                            setGamePhase(
+                                target === 'player'
+                                    ? 'computerTurn_draw'
+                                    : 'playerTurn_draw'
+                            )
                         );
                     }
                 },
             };
         });
 
-        setPlayerAnimatedCards(combinedAnimatedCards);
-    };
-
-    //TO DO
-    const handleComputerAttack = () => {
-        if (
-            computerDrawnCard === null ||
-            !computerDrawnCardRef.current ||
-            slotsComputerCanAttack.length === 0
-        )
-            return;
-        const targetSlot = slotsComputerCanAttack.reduce((prev, curr) =>
-            prev.cardValue! < curr.cardValue! ? prev : curr
-        );
-        const attackSlotRef = playerSlotRefs.current[targetSlot.id];
-        if (!attackSlotRef) return;
-
-        const attackCard = computerDrawnCard;
-
-        setSlotsComputerCanAttack([]);
-        setComputerDrawnCard(null);
-
-        const attackCoordinates = calculateAnimationCoordinates({
-            startRef: computerDrawnCardRef.current,
-            endRef: attackSlotRef,
-            animationType: 'deal',
-        });
-        const animatedAttackCard: AnimatedCardType = {
-            id: Date.now() + 1,
-            cardValue: attackCard,
-            ...attackCoordinates,
-            animationType: 'attack',
-            onAnimationEnd: () => {
-                setAttackingCardsInSlots((prev) => [
-                    ...prev,
-                    { id: targetSlot.id, cardValue: attackCard },
-                ]);
-                setComputerAnimatedCards([]);
-                setGamePhase('resolveTurn');
-            },
-        };
-        setComputerAnimatedCards([animatedAttackCard]);
+        setAnimatedCards(combinedAnimatedCards);
     };
 
     useEffect(() => {
@@ -515,20 +580,23 @@ export const useGameLogic = () => {
                         dealCards('player'),
                         dealCards('computer'),
                     ]);
-
                     break;
-
+                case 'playerTurn_draw':
+                    setShowDrawCardButton(true);
+                    break;
                 case 'playerTurn_end':
-                    handlePlayerEnd();
+                    handleEndTurn('player');
                     break;
                 case 'computerTurn_draw':
-                    await dealTopCard('computer');
+                    setShowDrawCardButton(false);
+                    setTimeout(() => handleDrawCard('computer'), 1000);
                     break;
-
                 case 'computerTurn_attack':
-                    setTimeout(handleComputerAttack, 1000);
+                    setTimeout(() => handleAttack('computer'), 1000);
                     break;
-
+                case 'computerTurn_end':
+                    setTimeout(() => handleEndTurn('computer'), 1000);
+                    break;
                 case 'resolveTurn':
                     break;
             }
@@ -536,22 +604,6 @@ export const useGameLogic = () => {
 
         handleGamePhase();
     }, [gamePhase]);
-
-    useEffect(() => {
-        console.log('gamePhase ', gamePhase);
-    }, [gamePhase]);
-    useEffect(() => {
-        console.log('playerDeck ', playerDeck);
-    }, [playerDeck]);
-    useEffect(() => {
-        console.log('computerDeck ', computerDeck);
-    }, [computerDeck]);
-    useEffect(() => {
-        console.log('computerDiscardDeck ', computerDiscardDeck);
-    }, [computerDiscardDeck]);
-    useEffect(() => {
-        console.log('playerDiscardDeck ', playerDiscardDeck);
-    }, [playerDiscardDeck]);
 
     return {
         computerSlotRefs,
@@ -563,23 +615,23 @@ export const useGameLogic = () => {
         playerDrawnCardRef,
         playerDiscardDeckRef,
         showModal,
-        gamePhase,
         playerAnimatedCards,
         computerAnimatedCards,
         computerDrawnCard,
         playerDrawnCard,
         computerDefenseSlots,
         playerDefenseSlots,
-        slotsPlayerCanAttack,
-        slotsComputerCanAttack,
+        slotsCanBeAttacked,
         handleStart,
-        handlePlayerAttack,
-        handleComputerAttack,
+        handleAttack,
         attackingCardsInSlots,
         playerDiscardDeck,
         computerDiscardDeck,
         playerDeckLength: playerDeck.length,
         computerDeckLength: computerDeck.length,
-        handleDrawCard,
+        handleDrawPlayerCard: () => handleDrawCard('player'),
+        showEndTurnButton,
+        handlePlayerEndTurn,
+        showDrawCardButton,
     };
 };

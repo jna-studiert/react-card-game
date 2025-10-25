@@ -15,7 +15,7 @@
     transition: all 300ms;
 }
 
-.slot:hover:not(.not-attack) .attack-slot {
+.slot-status:hover:not(.not-attack) .attack-slot {
     transform: rotate(20deg) translate(10px, 10px);
     transform-origin: bottom center;
 }

@@ -1,4 +1,4 @@
-import Card from '../Card/Card';
+import Card from '../card/Card';
 import './styles.css';
 import { useRef } from 'react';
 

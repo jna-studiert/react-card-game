@@ -1,11 +1,11 @@
 import './styles.css';
 import StartModal from '../modal/StartModal';
 import SlotsRow from './SlotsRow';
-import Deck from './Deck';
-import AnimationLayer from './AnimationLayer';
+import Deck from './decks/Deck';
+import AnimationLayer from '../common/animations/AnimationLayer';
 import { useGameLogic } from '@/hooks/useGameLogic';
-import type { SlotType } from '@/types';
-import DiscardDeck from './DiscardDeck';
+import type { SlotType } from '@/utils/types';
+import DiscardDeck from './decks/DiscardDeck';
 
 interface FieldSectionProps {
     target: 'player' | 'computer';
@@ -49,16 +49,23 @@ function FieldSection({
                     target === 'computer' ? 'flex-row' : 'flex-row-reverse'
                 }`}
             >
-                <Deck
-                    deckRef={deckRef}
-                    drawnCardRef={drawnCardRef}
-                    drawnCard={drawnCard}
-                    target={target}
-                    length={length}
-                />
+                <div
+                    className={`flex gap-6 w-full h-full items-end ${
+                        target === 'computer' ? 'flex-row' : 'flex-row-reverse'
+                    }`}
+                >
+                    <Deck
+                        deckRef={deckRef}
+                        drawnCardRef={drawnCardRef}
+                        drawnCard={drawnCard}
+                        target={target}
+                        length={length}
+                    />
+                </div>
                 <DiscardDeck
                     discardDeckRef={discardDeckRef}
                     discardDeck={discardDeck}
+                    target={target}
                 />
             </div>
             <SlotsRow
@@ -91,17 +98,18 @@ export default function Field() {
         playerDrawnCard,
         computerDefenseSlots,
         playerDefenseSlots,
-        slotsPlayerCanAttack,
-        slotsComputerCanAttack,
+        slotsCanBeAttacked,
         handleStart,
-        handlePlayerAttack,
+        handleAttack,
         attackingCardsInSlots,
         computerDiscardDeck,
         playerDiscardDeck,
         playerDeckLength,
         computerDeckLength,
-        gamePhase,
-        handleDrawCard,
+        handleDrawPlayerCard,
+        handlePlayerEndTurn,
+        showEndTurnButton,
+        showDrawCardButton,
     } = useGameLogic();
 
     return (
@@ -120,22 +128,32 @@ export default function Field() {
                 defenseSlots={computerDefenseSlots}
                 drawnCard={computerDrawnCard}
                 opponentDrawnCard={playerDrawnCard}
-                slotsCanBeAttacked={slotsPlayerCanAttack}
-                onAttack={handlePlayerAttack}
+                slotsCanBeAttacked={slotsCanBeAttacked}
+                onAttack={(slotId) => handleAttack('player', slotId)}
                 attackingCards={attackingCardsInSlots}
                 discardDeck={computerDiscardDeck}
                 length={computerDeckLength}
             />
-            {gamePhase === 'playerTurn_draw' && !playerDrawnCard && (
-                <button
-                    onClick={handleDrawCard}
-                    className="absolute bottom-8 left-1/2 -translate-x-1/2 
-                   bg-amber-500 hover:bg-amber-600 text-black font-bold 
-                   py-2 px-6 rounded-2xl shadow-lg transition active:scale-95"
-                >
-                    Вытянуть карту
-                </button>
-            )}
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-8">
+                {showDrawCardButton && (
+                    <button
+                        onClick={handleDrawPlayerCard}
+                        className="absolute bottom-8 left-1/2 -translate-x-1/2 
+                   button-primary"
+                    >
+                        Вытянуть карту
+                    </button>
+                )}
+                {showEndTurnButton && (
+                    <button
+                        className="absolute bottom-8 left-1/2 -translate-x-1/2 
+                   button-primary"
+                        onClick={handlePlayerEndTurn}
+                    >
+                        Завершить ход
+                    </button>
+                )}
+            </div>
             <FieldSection
                 target={'player'}
                 deckRef={playerDeckRef}
@@ -145,7 +163,7 @@ export default function Field() {
                 defenseSlots={playerDefenseSlots}
                 drawnCard={playerDrawnCard}
                 opponentDrawnCard={computerDrawnCard}
-                slotsCanBeAttacked={slotsComputerCanAttack}
+                slotsCanBeAttacked={slotsCanBeAttacked}
                 attackingCards={attackingCardsInSlots}
                 discardDeck={playerDiscardDeck}
                 length={playerDeckLength}

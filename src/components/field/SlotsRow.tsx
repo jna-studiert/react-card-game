@@ -1,5 +1,5 @@
-import Card from '../common/Card/Card';
-import type { SlotType } from '@/types';
+import Card from '../common/card/Card';
+import type { SlotType } from '@/utils/types';
 
 export default function SlotsRow({
     defenseSlots,
@@ -21,22 +21,13 @@ export default function SlotsRow({
     return (
         <div className="w-full flex flex-1 justify-center items-center gap-10">
             {defenseSlots.map((defenseSlot) => {
-                const attackingCardValue = attackingCards.find(
+                const attackingCardInSlot = attackingCards.find(
                     (card) => card.id === defenseSlot.id
                 );
                 return (
                     <div
                         key={defenseSlot.id}
-                        className={`slot w-full max-w-40 aspect-[5/7] relative ${
-                            target === 'computer' && attackingCard !== null
-                                ? slotsCanBeAttacked
-                                      ?.map((slot) => slot.id)
-                                      .includes(defenseSlot.id) &&
-                                  !attackingCardValue
-                                    ? 'for-attack'
-                                    : 'not-attack'
-                                : ''
-                        } ${!!attackingCardValue ? 'defeated' : ''}`}
+                        className="slot w-full max-w-40 aspect-[5/7] relative"
                         ref={(el) => {
                             if (el) slotRefs.current[defenseSlot.id] = el;
                         }}
@@ -46,28 +37,41 @@ export default function SlotsRow({
                                 slotsCanBeAttacked
                                     ?.map((slot) => slot.id)
                                     .includes(defenseSlot.id) &&
-                                defenseSlot.cardValue !== null &&
+                                !!defenseSlot.cardValue &&
                                 onAttack
                             )
                                 onAttack(defenseSlot.id);
                         }}
                     >
-                        {defenseSlot.cardValue !== null && (
-                            <Card
-                                key={defenseSlot.id}
-                                value={defenseSlot.cardValue}
-                                isFrontUp={true}
-                            />
-                        )}
-
-                        <div className="attack-slot absolute left-0 top-0 w-full h-full z-1">
-                            {!!attackingCardValue && (
+                        <div
+                            className={`slot-status  w-full h-full ${
+                                target === 'computer' && !!attackingCard
+                                    ? slotsCanBeAttacked
+                                          ?.map((slot) => slot.id)
+                                          .includes(defenseSlot.id) &&
+                                      !attackingCardInSlot
+                                        ? 'for-attack'
+                                        : 'not-attack'
+                                    : ''
+                            } ${!!attackingCardInSlot ? 'defeated' : ''}`}
+                        >
+                            {!!defenseSlot.cardValue && (
                                 <Card
                                     key={defenseSlot.id}
-                                    value={attackingCardValue.cardValue}
+                                    value={defenseSlot.cardValue}
                                     isFrontUp={true}
                                 />
                             )}
+
+                            <div className="attack-slot absolute left-0 top-0 w-full h-full z-1">
+                                {!!attackingCardInSlot && (
+                                    <Card
+                                        key={defenseSlot.id}
+                                        value={attackingCardInSlot.cardValue}
+                                        isFrontUp={true}
+                                    />
+                                )}
+                            </div>
                         </div>
                     </div>
                 );
