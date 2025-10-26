@@ -1,0 +1,24 @@
+:root {
+    --angle: 0deg;
+}
+
+.fan {
+    position: absolute;
+    inset: 0;
+}
+
+.fan-card-wrapper {
+    position: absolute;
+    bottom: 0;
+    transform-origin: bottom center;
+    transition: transform 0.8s ease;
+    transform: rotate(0deg);
+}
+
+.fan.visible-fan .fan-card-wrapper {
+    transform: rotate(var(--angle));
+}
+
+.fan.visible-fan .fan-card-wrapper:hover {
+    transform: rotate(var(--angle)) translate(-5px, -10px);
+}

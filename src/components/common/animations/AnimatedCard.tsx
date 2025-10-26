@@ -11,8 +11,8 @@ interface AnimatedCardProps {
     flippingDuration?: number;
     flyDuration?: number;
     onAnimationEnd?: () => void;
-    startPosition: { x: number; y: number };
-    positionToMove: { x: number; y: number };
+    startPosition?: { x: number; y: number };
+    positionToMove?: { x: number; y: number };
     size: { width: number; height: number };
 }
 
@@ -24,8 +24,8 @@ export default function AnimatedCard({
     flyDelay = 0,
     flippingDuration = 0.6,
     flyDuration = 1,
-    startPosition,
-    positionToMove,
+    startPosition = { x: 0, y: 0 },
+    positionToMove = { x: 0, y: 0 },
     size,
     onAnimationEnd,
 }: AnimatedCardProps) {

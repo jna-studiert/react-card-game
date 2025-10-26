@@ -44,7 +44,7 @@ export default function SlotsRow({
                         }}
                     >
                         <div
-                            className={`slot-status  w-full h-full ${
+                            className={`slot-status w-full h-full ${
                                 target === 'computer' && !!attackingCard
                                     ? slotsCanBeAttacked
                                           ?.map((slot) => slot.id)

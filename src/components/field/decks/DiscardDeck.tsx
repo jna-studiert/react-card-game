@@ -1,3 +1,7 @@
+import CardFan from '@/components/common/animations/card-fan/CardFan';
+import Card from '@/components/common/card/Card';
+import { useState } from 'react';
+
 export default function DiscardDeck({
     discardDeckRef,
     discardDeck,
@@ -7,19 +11,30 @@ export default function DiscardDeck({
     discardDeck: number[];
     target: 'player' | 'computer';
 }) {
+    const [visible, setVisible] = useState(false);
+
     return (
         <div
             ref={discardDeckRef}
             className="slot relative w-full max-w-40 aspect-[5/7]"
+            onClick={() => setVisible((v) => !v)}
         >
             {!!discardDeck.length && (
-                <div className="card card-back bg-amber-700" />
-                // <Card
-                //     value={discardDeck[discardDeck.length - 1]}
-                //     isFrontUp={true}
-                // />
+                <>
+                    <CardFan
+                        cards={discardDeck.slice(0, -1)}
+                        isVisible={visible}
+                        fanOrigin={target === 'computer' ? 'right' : 'left'}
+                    />
+                    <div
+                        className={`discard-card-wrapper ${
+                            visible ? 'discard-flip' : ''
+                        }`}
+                    >
+                        <Card value={discardDeck[discardDeck.length - 1]} />
+                    </div>
+                </>
             )}
-            {/* <CardFan cards={discardDeck} /> */}
         </div>
     );
 }
