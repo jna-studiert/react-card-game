@@ -10,7 +10,6 @@
 .fan-card-wrapper {
     position: absolute;
     bottom: 0;
-    transform-origin: bottom center;
     transition: transform 0.8s ease;
     transform: rotate(0deg);
 }
@@ -21,4 +20,16 @@
 
 .fan.visible-fan .fan-card-wrapper:hover {
     transform: rotate(var(--angle)) translate(-5px, -10px);
+}
+
+.visible-fan {
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 0s ease;
+}
+
+.hidden-fan {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0s ease 0.8s;
 }

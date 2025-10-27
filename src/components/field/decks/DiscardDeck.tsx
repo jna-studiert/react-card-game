@@ -1,6 +1,6 @@
 import CardFan from '@/components/common/animations/card-fan/CardFan';
 import Card from '@/components/common/card/Card';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function DiscardDeck({
     discardDeckRef,
@@ -11,7 +11,26 @@ export default function DiscardDeck({
     discardDeck: number[];
     target: 'player' | 'computer';
 }) {
-    const [visible, setVisible] = useState(false);
+    const [isVisible, setVisible] = useState(false);
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (!isVisible) return;
+
+            if (
+                discardDeckRef.current &&
+                !discardDeckRef.current.contains(event.target as Node)
+            ) {
+                setVisible(false);
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isVisible, discardDeckRef]);
 
     return (
         <div
@@ -23,12 +42,13 @@ export default function DiscardDeck({
                 <>
                     <CardFan
                         cards={discardDeck.slice(0, -1)}
-                        isVisible={visible}
-                        fanOrigin={target === 'computer' ? 'right' : 'left'}
+                        isVisible={isVisible}
+                        target={target}
+                        fanOrigin={'side'}
                     />
                     <div
                         className={`discard-card-wrapper ${
-                            visible ? 'discard-flip' : ''
+                            isVisible ? 'discard-flip' : ''
                         }`}
                     >
                         <Card value={discardDeck[discardDeck.length - 1]} />
