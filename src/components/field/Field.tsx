@@ -6,6 +6,7 @@ import AnimationLayer from '../common/animations/AnimationLayer';
 import { useGameLogic } from '@/hooks/useGameLogic';
 import type { SlotType } from '@/utils/types';
 import DiscardDeck from './decks/DiscardDeck';
+import LivePoints from './live-points/LivePoints';
 
 interface FieldSectionProps {
     target: 'player' | 'computer';
@@ -21,6 +22,7 @@ interface FieldSectionProps {
     attackingCards: SlotType[];
     discardDeck: number[];
     length: number;
+    livePoints: number;
 }
 
 function FieldSection({
@@ -37,6 +39,7 @@ function FieldSection({
     attackingCards,
     discardDeck,
     length,
+    livePoints,
 }: FieldSectionProps) {
     return (
         <div
@@ -60,6 +63,11 @@ function FieldSection({
                         drawnCard={drawnCard}
                         target={target}
                         length={length}
+                    />
+                    <LivePoints
+                        maxLives={5}
+                        lives={livePoints}
+                        target={target}
                     />
                 </div>
                 <DiscardDeck
@@ -110,6 +118,8 @@ export default function Field() {
         handlePlayerEndTurn,
         showEndTurnButton,
         showDrawCardButton,
+        playerPoints,
+        computerPoints,
     } = useGameLogic();
 
     return (
@@ -133,27 +143,24 @@ export default function Field() {
                 attackingCards={attackingCardsInSlots}
                 discardDeck={computerDiscardDeck}
                 length={computerDeckLength}
+                livePoints={computerPoints}
             />
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-8">
-                {showDrawCardButton && (
-                    <button
-                        onClick={handleDrawPlayerCard}
-                        className="absolute bottom-8 left-1/2 -translate-x-1/2 
-                   button-primary"
-                    >
-                        Вытянуть карту
-                    </button>
-                )}
-                {showEndTurnButton && (
-                    <button
-                        className="absolute bottom-8 left-1/2 -translate-x-1/2 
-                   button-primary"
-                        onClick={handlePlayerEndTurn}
-                    >
-                        Завершить ход
-                    </button>
-                )}
-            </div>
+            {showDrawCardButton && (
+                <button
+                    onClick={handleDrawPlayerCard}
+                    className="absolute bottom-8 left-1/2 -translate-x-1/2 button-primary w-48"
+                >
+                    Вытянуть карту
+                </button>
+            )}
+            {showEndTurnButton && (
+                <button
+                    className="absolute bottom-8 left-1/2 -translate-x-1/2 button-primary w-48"
+                    onClick={handlePlayerEndTurn}
+                >
+                    Завершить ход
+                </button>
+            )}
             <FieldSection
                 target={'player'}
                 deckRef={playerDeckRef}
@@ -167,6 +174,7 @@ export default function Field() {
                 attackingCards={attackingCardsInSlots}
                 discardDeck={playerDiscardDeck}
                 length={playerDeckLength}
+                livePoints={playerPoints}
             />
         </div>
     );

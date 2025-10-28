@@ -14,6 +14,8 @@ type GamePhase =
     | 'resolveTurn'
     | 'gameOver';
 
+const MAX_POINTS = 5;
+
 export const useGameLogic = () => {
     const computerSlotRefs = useRef<Record<number, HTMLDivElement>>({});
     const computerDeckRef = useRef<HTMLDivElement>(null);
@@ -71,7 +73,17 @@ export const useGameLogic = () => {
     const [showDrawCardButton, setShowDrawCardButton] =
         useState<boolean>(false);
 
+    const [playerPoints, setPlayerPoints] = useState<number>(MAX_POINTS);
+    const [computerPoints, setComputerPoints] = useState<number>(MAX_POINTS);
+
     const [gamePhase, setGamePhase] = useState<GamePhase>('dealing');
+
+    useEffect(() => {
+        console.log('playerPoints ', playerPoints);
+    }, [playerPoints]);
+    useEffect(() => {
+        console.log('computerPoints ', computerPoints);
+    }, [computerPoints]);
 
     const handleStart = (first: 'player' | 'computer') => {
         setShowModal(false);
@@ -405,6 +417,8 @@ export const useGameLogic = () => {
             defenseSlots,
             slotRefs,
             setAnimatedCards,
+            setAttackerPoints,
+            setDefenderPoints,
         } =
             target === 'player'
                 ? {
@@ -421,6 +435,8 @@ export const useGameLogic = () => {
                       slotRefs: computerSlotRefs,
                       setDefenderSlots: setComputerSlots,
                       setAnimatedCards: setPlayerAnimatedCards,
+                      setDefenderPoints: setComputerPoints,
+                      setAttackerPoints: setPlayerPoints,
                   }
                 : {
                       drawnCard: computerDrawnCard,
@@ -436,7 +452,13 @@ export const useGameLogic = () => {
                       slotRefs: playerSlotRefs,
                       setDefenderSlots: setPlayerSlots,
                       setAnimatedCards: setComputerAnimatedCards,
+                      setDefenderPoints: setPlayerPoints,
+                      setAttackerPoints: setComputerPoints,
                   };
+
+        if (attackingCardsInSlots.length === defenseSlots.length) {
+            setDefenderPoints((prev) => prev - 1);
+        }
 
         const cardsToDiscard: number[] = [];
         const cardsToAttackerDeck: number[] = [];
@@ -444,6 +466,9 @@ export const useGameLogic = () => {
         let allAnimatedCards: AnimatedCardType[] = [];
 
         if (drawnCard) {
+            if (!attackingCardsInSlots.length) {
+                setAttackerPoints((prev) => prev - 1);
+            }
             const coordinates = calculateAnimationCoordinates({
                 startRef: drawnCardRef!,
                 endRef: defenderDeckRef!,
@@ -633,5 +658,7 @@ export const useGameLogic = () => {
         showEndTurnButton,
         handlePlayerEndTurn,
         showDrawCardButton,
+        playerPoints,
+        computerPoints,
     };
 };
