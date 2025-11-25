@@ -42,6 +42,41 @@
 }
 
 .animate-gradient {
-    background-size: 200% auto;
     animation: gradient-animation 3s ease-in-out infinite;
+}
+
+.rule-page {
+    width: 100%;
+}
+
+.rule-page p {
+    white-space: pre-wrap;
+    line-height: 1.5;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.highlight {
+    background: linear-gradient(90deg, #7e22ce, #ec4899, #f97316);
+    background-size: 200% auto;
+    background-clip: text;
+    color: transparent;
+    font-weight: 700;
+}
+
+.modal {
+    background-color: #fff;
+    border-radius: 16px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+    text-align: center;
+    width: 500px;
 }

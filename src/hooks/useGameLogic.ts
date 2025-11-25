@@ -78,13 +78,6 @@ export const useGameLogic = () => {
 
     const [gamePhase, setGamePhase] = useState<GamePhase>('dealing');
 
-    useEffect(() => {
-        console.log('playerPoints ', playerPoints);
-    }, [playerPoints]);
-    useEffect(() => {
-        console.log('computerPoints ', computerPoints);
-    }, [computerPoints]);
-
     const handleStart = (first: 'player' | 'computer') => {
         setShowModal(false);
         setGamePhase(
