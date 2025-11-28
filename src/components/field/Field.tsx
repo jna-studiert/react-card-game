@@ -7,6 +7,7 @@ import { useGameLogic } from '@/hooks/useGameLogic';
 import type { SlotType } from '@/utils/types';
 import DiscardDeck from './decks/DiscardDeck';
 import LivePoints from './live-points/LivePoints';
+import { MAX_POINTS } from '@/hooks/gameReducer';
 
 interface FieldSectionProps {
     target: 'player' | 'computer';
@@ -65,7 +66,7 @@ function FieldSection({
                         length={length}
                     />
                     <LivePoints
-                        maxLives={5}
+                        maxLives={MAX_POINTS}
                         lives={livePoints}
                         target={target}
                     />

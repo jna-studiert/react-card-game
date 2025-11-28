@@ -13,7 +13,7 @@
 }
 
 .card-wrapper.fly {
-    animation: fly var(--fly-animation-duration) forwards ease-out;
+    animation: fly var(--fly-animation-duration) forwards ease;
     animation-delay: var(--fly-animation-delay);
 }
 

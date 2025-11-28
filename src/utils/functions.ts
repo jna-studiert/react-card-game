@@ -15,10 +15,10 @@ export const shuffle = (array: number[]) => {
     return arr;
 };
 
-export const checkCanAttack = (slots: SlotType[], activeCard: number) => {
-    return activeCard === 1
+export const checkCanAttack = (slots: SlotType[], activeCardValue: number) => {
+    return activeCardValue === 1
         ? slots.filter((slot) => slot.cardValue === 5)
         : slots.filter(
-              (slot) => !!slot.cardValue && slot.cardValue < activeCard
+              (slot) => !!slot.cardValue && slot.cardValue < activeCardValue
           );
 };

@@ -1,46 +1,99 @@
 :root {
-    --primary-color: #f97316;
-    --light-color: #ffcd28;
-    --dark-color: #c2410c;
+    --primary-color: 249, 115, 22;
+    --light-color: 255, 205, 40;
+    --dark-color: 194, 65, 12;
 }
 
-/* 
-.empty-slot {
-    width: 25px;
-    height: 27px;
-    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-    box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.8),
-        inset -3px -3px 6px rgba(255, 255, 255, 0.2),
-        inset 0 0 15px rgba(0, 0, 0, 0.6);
-    background: linear-gradient(
-        135deg,
-        rgba(26, 26, 46, 0.9) 0%,
-        rgba(22, 33, 62, 0.9) 100%
-    );
-}
-*/
-
-.crystal {
+.crystal-container {
     width: 25px;
     height: 27px;
     position: relative;
-    transition: all 0.3s ease;
-    filter: drop-shadow(0 0 8px rgba(var(--light-color), 0.7));
 }
 
-.crystal-inner {
+.polygon {
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+.empty-slot {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    background: linear-gradient(
+        45deg,
+        #2b2b2b 0%,
+        #3a3a3a 30%,
+        #1a1a1a 70%,
+        #000000 100%
+    );
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.7),
+        inset 0 -2px 4px rgba(255, 255, 255, 0.05);
+}
+
+.crystal {
     width: 100%;
     height: 100%;
     position: relative;
     background: linear-gradient(
         45deg,
-        var(--primary-color) 0%,
-        var(--dark-color) 30%,
-        var(--light-color) 70%,
-        var(--primary-color) 100%
+        rgb(var(--primary-color)) 0%,
+        rgb(var(--dark-color)) 30%,
+        rgb(var(--light-color)) 70%,
+        rgb(var(--primary-color)) 100%
     );
-    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
     animation: crystal-glow 2s ease-in-out infinite alternate;
+}
+
+.glow {
+    filter: drop-shadow(0 0 6px rgba(var(--light-color), 0.7))
+        drop-shadow(0 0 12px rgba(var(--primary-color), 0.6))
+        drop-shadow(0 0 22px rgba(var(--dark-color), 0.5));
+
+    animation: glow-pulse 2.4s ease-in-out infinite alternate;
+    transition: filter 0.25s ease;
+}
+
+.glow:hover {
+    filter: drop-shadow(0 0 10px rgba(var(--light-color), 0.95))
+        drop-shadow(0 0 20px rgba(var(--primary-color), 0.9))
+        drop-shadow(0 0 35px rgba(var(--dark-color), 0.75));
+}
+
+@keyframes glow-pulse {
+    0% {
+        filter: drop-shadow(0 0 5px rgba(var(--light-color), 0.6))
+            drop-shadow(0 0 10px rgba(var(--primary-color), 0.5))
+            drop-shadow(0 0 18px rgba(var(--dark-color), 0.45));
+    }
+    100% {
+        filter: drop-shadow(0 0 7px rgba(var(--light-color), 0.8))
+            drop-shadow(0 0 15px rgba(var(--primary-color), 0.7))
+            drop-shadow(0 0 26px rgba(var(--dark-color), 0.55));
+    }
+}
+
+.glow.glow-pop {
+    animation: glow-pop-flash 300ms ease-out;
+}
+
+@keyframes glow-pop-flash {
+    0% {
+        filter: drop-shadow(0 0 8px rgba(var(--light-color), 0.9))
+            drop-shadow(0 0 16px rgba(var(--primary-color), 0.8))
+            drop-shadow(0 0 28px rgba(var(--dark-color), 0.7));
+        transform: scale(1);
+    }
+    40% {
+        filter: drop-shadow(0 0 16px rgba(var(--light-color), 1))
+            drop-shadow(0 0 32px rgba(var(--primary-color), 1))
+            drop-shadow(0 0 48px rgba(var(--dark-color), 0.9));
+        transform: scale(1.12);
+    }
+    100% {
+        filter: drop-shadow(0 0 5px rgba(var(--light-color), 0.6))
+            drop-shadow(0 0 10px rgba(var(--primary-color), 0.5))
+            drop-shadow(0 0 18px rgba(var(--dark-color), 0.4));
+        transform: scale(1);
+    }
 }
 
 .crystal-shine {
@@ -54,51 +107,25 @@
         rgba(255, 255, 255, 0.9) 0%,
         rgba(255, 255, 255, 0.2) 100%
     );
-    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
     transform: scale(0.6);
     opacity: 0.8;
     filter: blur(1px);
 }
 
-.crystal.active {
-    filter: drop-shadow(0 0 12px var(--light-color));
-    opacity: 0.9;
-}
-
-.crystal.active:hover {
+.crystal:hover {
     transform: scale(1.15) rotate(5deg);
-    filter: drop-shadow(0 0 18px var(--light-color));
-}
-
-.crystal.lost {
-    opacity: 0.4;
-    filter: grayscale(0.8) drop-shadow(0 0 5px rgba(255, 255, 255, 0.2));
-    animation: none;
-}
-
-.crystal.lost .crystal-inner {
-    background: linear-gradient(45deg, #666666 0%, #888888 50%, #444444 100%);
-    animation: none;
-}
-
-.crystal.lost .crystal-shine {
-    opacity: 0.2;
 }
 
 @keyframes crystal-glow {
     0% {
         filter: brightness(1) hue-rotate(0deg);
-        box-shadow: inset 0 0 15px rgba(var(--light-color), 0.2),
-            0 0 20px rgba(var(--dark-color), 0.3);
     }
     100% {
         filter: brightness(1.2) hue-rotate(10deg);
-        box-shadow: inset 0 0 20px rgba(var(--dark-color), 0.7),
-            0 0 30px rgba(var(--light-color), 0.3);
     }
 }
 
-.crystal.popping .crystal-inner {
+.crystal.popping {
     animation: crystal-pop 0.6s ease-in forwards;
 }
 
@@ -110,17 +137,17 @@
     }
     30% {
         transform: scale(1.4);
-        opacity: 0.8;
+        opacity: 1;
         filter: brightness(1.5) blur(1px);
     }
     50% {
         transform: scale(1.6);
-        opacity: 0.6;
+        opacity: 0.8;
         filter: brightness(2) blur(2px);
     }
     80% {
         transform: scale(1.8);
-        opacity: 0.3;
+        opacity: 0.4;
         filter: brightness(3) blur(4px);
     }
     100% {

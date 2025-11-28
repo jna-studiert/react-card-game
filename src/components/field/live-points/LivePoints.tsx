@@ -1,64 +1,3 @@
-// import { useState, useEffect } from 'react';
-// import './styles.css';
-
-// export default function LivePoints({
-//     lives = 3,
-//     maxLives = 5,
-//     target,
-// }: {
-//     maxLives: number;
-//     lives: number;
-//     target: 'player' | 'computer';
-// }) {
-//     const color =
-//         target === 'player'
-//             ? ({
-//                   '--primary-color': '#f97316',
-//               } as React.CSSProperties)
-//             : ({
-//                   '--primary-color': '#8b5cf6',
-//               } as React.CSSProperties);
-
-//     const [poppingIndex, setPoppingIndex] = useState<number | null>(null);
-//     const [previousLives, setPreviousLives] = useState(lives);
-
-//     useEffect(() => {
-//         if (lives < previousLives) {
-//             setPoppingIndex(lives - 1);
-//             setPreviousLives(lives);
-//         }
-//     }, [lives]);
-
-//     return (
-//         <div className="flex flex-col items-center gap-4 justify-between">
-//             {Array.from({ length: maxLives }).map((_, index) => (
-//                 <div key={index} className="empty-slot">
-//                     {index < lives && (
-//                         <div
-//                             className={`crystal ${
-//                                 poppingIndex !== null && index <= poppingIndex
-//                                     ? 'popping'
-//                                     : ''
-//                             }`}
-//                             style={color}
-//                         >
-//                             <div className="crystal-shine" />
-//                             {poppingIndex === index && (
-//                                 <>
-//                                     <div className="crystal-particle particle-1" />
-//                                     <div className="crystal-particle particle-2" />
-//                                     <div className="crystal-particle particle-3" />
-//                                     <div className="crystal-particle particle-4" />
-//                                 </>
-//                             )}
-//                         </div>
-//                     )}
-//                 </div>
-//             ))}
-//         </div>
-//     );
-// }
-
 import { useEffect, useState } from 'react';
 import './styles.css';
 
@@ -74,14 +13,14 @@ export default function LivePoints({
     const color =
         target === 'player'
             ? ({
-                  '--primary-color': '#f97316',
-                  '--light-color': '#ffcd28',
-                  '--dark-color': '#c2410c',
+                  '--primary-color': '249, 115, 22',
+                  '--light-color': '255, 205, 40',
+                  '--dark-color': '194, 65, 12',
               } as React.CSSProperties)
             : ({
-                  '--primary-color': '#8b5cf6',
-                  '--light-color': '#c4b5fd',
-                  '--dark-color': '#7c3aed',
+                  '--primary-color': '139, 92, 246',
+                  '--light-color': '196, 181, 253',
+                  '--dark-color': '124, 58, 237',
               } as React.CSSProperties);
 
     const [poppingIndex, setPoppingIndex] = useState<number | null>(null);
@@ -110,24 +49,27 @@ export default function LivePoints({
                     <div
                         key={index}
                         style={color}
-                        className={`crystal ${isActive ? 'active' : 'lost'} ${
-                            isPopping ? 'popping' : ''
-                        } ${
-                            index < lives
-                                ? 'hover:scale-110 hover:rotate-3'
-                                : ''
-                        } transition-all duration-300`}
-                        onAnimationEnd={() => handleAnimationEnd(index)}
+                        className={`crystal-container ${
+                            isActive ? 'glow' : ''
+                        } ${isPopping ? 'glow-pop' : ''}`}
                     >
-                        <div className="crystal-inner">
-                            <div className="crystal-shine"></div>
-                        </div>
+                        <div className="empty-slot polygon" />
+                        {isActive && (
+                            <div
+                                className={`crystal polygon ${
+                                    isPopping ? 'popping' : ''
+                                }`}
+                                onAnimationEnd={() => handleAnimationEnd(index)}
+                            >
+                                <div className="crystal-shine polygon" />
+                            </div>
+                        )}
                         {poppingIndex === index && (
                             <>
-                                <div className="crystal-particle particle-1"></div>
-                                <div className="crystal-particle particle-2"></div>
-                                <div className="crystal-particle particle-3"></div>
-                                <div className="crystal-particle particle-4"></div>
+                                <div className="crystal-particle particle-1" />
+                                <div className="crystal-particle particle-2" />
+                                <div className="crystal-particle particle-3" />
+                                <div className="crystal-particle particle-4" />
                             </>
                         )}
                     </div>
