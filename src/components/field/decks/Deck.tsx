@@ -15,7 +15,11 @@ export default function Deck({
     length: number;
 }) {
     return (
-        <div className="slot relative w-full max-w-40 aspect-[5/7]">
+        <div
+            className={`slot relative w-full max-w-40 aspect-[5/7] flex justify-center ${
+                target === 'player' ? 'items-end' : 'items-start'
+            }`}
+        >
             <div className="absolute inset-0" ref={deckRef}>
                 {!!length && <div className="card card-back bg-amber-700" />}
             </div>
@@ -27,6 +31,14 @@ export default function Deck({
                 }`}
             >
                 {!!drawnCard && <Card value={drawnCard} isFrontUp={true} />}
+            </div>
+
+            <div
+                className={`z-1 bg-black/40 text-white w-10 text-center rounded-2xl align-center ${
+                    target === 'player' ? 'mb-4' : 'mt-4'
+                }`}
+            >
+                {length}
             </div>
         </div>
     );
