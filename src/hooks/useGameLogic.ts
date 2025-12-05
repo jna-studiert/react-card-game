@@ -1,6 +1,6 @@
 import { useRef, useEffect, useReducer } from 'react';
 import type { AnimatedCardType } from '@/utils/types';
-import { checkCanAttack } from '@/utils/functions';
+import { checkCanAttack, checkMinSlot } from '@/utils/functions';
 import { calculateAnimationCoordinates } from '@/utils/animationCalculation';
 import { gameReducer, initialState, type GamePhase } from './gameReducer';
 
@@ -269,6 +269,83 @@ export const useGameLogic = () => {
                       type: 'SET_GAME_PHASE',
                       payload: 'computerTurn_end',
                   });
+            return;
+        }
+
+        if (checkMinSlot(availableDefenseSlots, drawnCard)) {
+            const { drawnCardRef, targetDeckRef } =
+                target === 'player'
+                    ? {
+                          drawnCardRef: playerDrawnCardRef.current,
+                          targetDeckRef: playerDeckRef.current,
+                      }
+                    : {
+                          drawnCardRef: computerDrawnCardRef.current,
+                          targetDeckRef: computerDeckRef.current,
+                      };
+
+            if (!drawnCardRef || !targetDeckRef || drawnCard === null) {
+                dispatch({
+                    type: 'ADD_TO_DECK',
+                    payload: { target, cards: [drawnCard] },
+                });
+                const redrawPhase: GamePhase =
+                    target === 'player'
+                        ? 'playerTurn_redraw'
+                        : 'computerTurn_redraw';
+                dispatch({ type: 'SET_GAME_PHASE', payload: redrawPhase });
+                return;
+            }
+
+            await new Promise<void>((resolve) => {
+                const coordinates = calculateAnimationCoordinates({
+                    startRef: drawnCardRef,
+                    endRef: targetDeckRef,
+                    animationSpeed: 500,
+                    animationType: 'deal',
+                });
+
+                const returnCard: AnimatedCardType = {
+                    id: Date.now(),
+                    cardValue: drawnCard,
+                    ...coordinates,
+                    animationType: 'discard',
+
+                    onAnimationEnd: () => {
+                        dispatch({
+                            type: 'ADD_TO_DECK',
+                            payload: { target, cards: [drawnCard] },
+                        });
+
+                        dispatch({
+                            type: 'SET_ANIMATED_CARDS',
+                            payload: { target, cards: [] },
+                        });
+
+                        const redrawPhase: GamePhase =
+                            target === 'player'
+                                ? 'playerTurn_redraw'
+                                : 'computerTurn_redraw';
+                        dispatch({
+                            type: 'SET_GAME_PHASE',
+                            payload: redrawPhase,
+                        });
+
+                        resolve();
+                    },
+                };
+
+                dispatch({
+                    type: 'SET_DRAWN_CARD',
+                    payload: { target, cardValue: null },
+                });
+
+                dispatch({
+                    type: 'SET_ANIMATED_CARDS',
+                    payload: { target, cards: [returnCard] },
+                });
+            });
+
             return;
         }
 
@@ -643,6 +720,15 @@ export const useGameLogic = () => {
                         type: 'SET_BUTTONS_VISIBILITY',
                         payload: { draw: true },
                     });
+                    break;
+                case 'computerTurn_redraw':
+                    dispatch({
+                        type: 'SET_GAME_PHASE',
+                        payload: 'computerTurn_draw',
+                    });
+                    break;
+                case 'playerTurn_redraw':
+                    handleDrawCard('player');
                     break;
                 case 'playerTurn_end':
                     handleEndTurn('player');

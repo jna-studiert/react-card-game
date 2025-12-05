@@ -53,7 +53,7 @@ export default function StartModal({
                         </span>
                     </h2>
 
-                    <div className="flex gap-4 justify-center">
+                    <div className="flex gap-4 justify-center flex-col">
                         <button
                             onClick={handlePlayClick}
                             className="button-primary"

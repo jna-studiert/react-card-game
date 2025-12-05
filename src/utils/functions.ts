@@ -15,6 +15,20 @@ export const shuffle = (array: number[]) => {
     return arr;
 };
 
+export const checkMinSlot = (slots: SlotType[], activeCard: number) => {
+    const minimalSlot = slots.reduce((prev, curr) =>
+        prev.cardValue! < curr.cardValue! ? prev : curr
+    );
+
+    const hasCardValueFive = slots.some((slot) => slot.cardValue! === 5);
+
+    if (activeCard === 1 && hasCardValueFive) {
+        return false;
+    }
+
+    return minimalSlot.cardValue === activeCard;
+};
+
 export const checkCanAttack = (slots: SlotType[], activeCardValue: number) => {
     return activeCardValue === 1
         ? slots.filter((slot) => slot.cardValue === 5)

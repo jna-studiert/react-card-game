@@ -50,8 +50,9 @@
 }
 
 .rule-page p {
-    white-space: pre-wrap;
     line-height: 1.5;
+    text-align: justify;
+    text-indent: 3rem;
 }
 
 .pagination {

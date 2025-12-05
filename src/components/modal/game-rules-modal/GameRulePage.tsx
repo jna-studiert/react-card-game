@@ -17,9 +17,9 @@ export default function GameRulePage({
         <div className="rule-page">
             <h2
                 dangerouslySetInnerHTML={{ __html: html(title) }}
-                className="text-2xl"
+                className="text-2xl mb-5"
             />
-            <p dangerouslySetInnerHTML={{ __html: html(content) }} />
+            <div dangerouslySetInnerHTML={{ __html: html(content) }} />
         </div>
     );
 }

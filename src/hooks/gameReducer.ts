@@ -37,7 +37,7 @@ interface GameState {
     gamePhase: GamePhase;
 }
 
-type GameAction =
+export type GameAction =
     | { type: 'START_GAME'; payload: { first: 'player' | 'computer' } }
     | {
           type: 'SET_DRAWN_CARD';

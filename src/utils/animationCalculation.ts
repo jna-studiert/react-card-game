@@ -61,7 +61,7 @@ export const calculateAnimationCoordinates = (
                 startPosition: { x: startX, y: startY },
                 targetPosition: { x: 0, y: targetY },
                 size: cardSize,
-                duration: 0.8,
+                duration: animationSpeed / 1000,
             };
     }
 
