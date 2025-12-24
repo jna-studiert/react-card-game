@@ -1,5 +1,6 @@
 import React from 'react';
 import Card from '../../common/card/Card';
+import type { PlayerType } from '@/utils/types';
 
 export default function Deck({
     deckRef,
@@ -11,7 +12,7 @@ export default function Deck({
     deckRef: React.RefObject<HTMLDivElement | null>;
     drawnCardRef: React.RefObject<HTMLDivElement | null>;
     drawnCard: number | null;
-    target: 'player' | 'computer';
+    target: PlayerType;
     length: number;
 }) {
     return (
@@ -21,7 +22,9 @@ export default function Deck({
             }`}
         >
             <div className="absolute inset-0" ref={deckRef}>
-                {!!length && <div className="card card-back bg-amber-700" />}
+                {!!length && (
+                    <div className="card card-back-pattern card-back-gradient" />
+                )}
             </div>
 
             <div

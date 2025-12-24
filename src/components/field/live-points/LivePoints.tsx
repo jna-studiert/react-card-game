@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import './styles.css';
+import type { PlayerType } from '@/utils/types';
 
 export default function LivePoints({
     lives = 3,
@@ -8,7 +9,7 @@ export default function LivePoints({
 }: {
     maxLives: number;
     lives: number;
-    target?: 'player' | 'computer';
+    target?: PlayerType;
 }) {
     const color =
         target === 'player'

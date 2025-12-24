@@ -1,5 +1,6 @@
 import CardFan from '@/components/common/animations/card-fan/CardFan';
 import Card from '@/components/common/card/Card';
+import type { PlayerType } from '@/utils/types';
 import { useEffect, useState } from 'react';
 
 export default function DiscardDeck({
@@ -9,7 +10,7 @@ export default function DiscardDeck({
 }: {
     discardDeckRef: React.RefObject<HTMLDivElement | null>;
     discardDeck: number[];
-    target: 'player' | 'computer';
+    target: PlayerType;
 }) {
     const [isVisible, setVisible] = useState(false);
 
@@ -47,7 +48,7 @@ export default function DiscardDeck({
                         fanOrigin={'side'}
                     />
                     <div
-                        className={`discard-card-wrapper ${
+                        className={`discard-card-wrapper cursor-pointer ${
                             isVisible ? 'discard-flip' : ''
                         }`}
                     >

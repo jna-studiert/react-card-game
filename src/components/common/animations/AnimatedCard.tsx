@@ -8,6 +8,7 @@ interface AnimatedCardProps {
     isFlipping: boolean;
     isFrontUp?: boolean;
     flyDelay?: number;
+    userDelay?: number;
     flippingDuration?: number;
     flyDuration?: number;
     onAnimationEnd?: () => void;
@@ -22,6 +23,7 @@ export default function AnimatedCard({
     isFlipping,
     isFrontUp = false,
     flyDelay = 0,
+    userDelay = 0,
     flippingDuration = 0.6,
     flyDuration = 1,
     startPosition = { x: 0, y: 0 },
@@ -39,7 +41,7 @@ export default function AnimatedCard({
         '--transition-x': `${positionToMove.x}px`,
         '--transition-y': `${positionToMove.y}px`,
         '--fly-animation-duration': `${flyDuration}s`,
-        '--fly-animation-delay': `${flyDelay}s`,
+        '--fly-animation-delay': `${!!flyDelay ? flyDelay : userDelay}s`,
         '--flipping-animation-duration': `${flippingDuration}s`,
     } as React.CSSProperties;
 

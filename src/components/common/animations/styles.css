@@ -4,6 +4,7 @@
     --fly-animation-duration: 1s;
     --fly-animation-delay: 0s;
     --flipping-animation-duration: 0.8s;
+    --user-delay: 0s;
 }
 
 .card-wrapper {

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import GameRulePage from './GameRulePage';
 
 const rulesData = [
     {
@@ -51,27 +50,45 @@ export default function GameRulesModal({ onBack }: { onBack: () => void }) {
     const nextPage = () => setPage((p) => Math.min(p + 1, total - 1));
     const prevPage = () => setPage((p) => Math.max(p - 1, 0));
 
+    const html = (text: string) =>
+        text
+            .replace(/\n/g, '<br/>')
+            .replace(
+                /<hl>(.*?)<\/hl>/g,
+                '<span class="highlight animate-gradient">$1</span>'
+            );
+
     return (
-        <div className="modal">
-            <GameRulePage
-                title={rulesData[page].title}
-                content={rulesData[page].content}
-            />
-            <div className="pagination">
+        <>
+            <div className="w-full">
+                <h2
+                    dangerouslySetInnerHTML={{
+                        __html: html(rulesData[page].title),
+                    }}
+                    className="text-2xl mb-5"
+                />
+                <div
+                    dangerouslySetInnerHTML={{
+                        __html: html(rulesData[page].content),
+                    }}
+                    className="indent-12 text-left"
+                />
+            </div>
+            <div className="w-full flex justify-between items-center">
                 {page !== 0 && (
-                    <button className="button-primary" onClick={prevPage}>
+                    <button className="btn-primary" onClick={prevPage}>
                         ← Назад
                     </button>
                 )}
-                <button className="button-primary" onClick={onBack}>
+                <button className="btn-primary" onClick={onBack}>
                     Вернуться в меню
                 </button>
                 {page !== total - 1 && (
-                    <button className="button-primary" onClick={nextPage}>
+                    <button className="btn-primary" onClick={nextPage}>
                         Вперёд →
                     </button>
                 )}
             </div>
-        </div>
+        </>
     );
 }

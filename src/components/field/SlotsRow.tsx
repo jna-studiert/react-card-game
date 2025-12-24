@@ -1,5 +1,5 @@
 import Card from '../common/card/Card';
-import type { SlotType } from '@/utils/types';
+import type { PlayerType, SlotType } from '@/utils/types';
 
 export default function SlotsRow({
     defenseSlots,
@@ -14,7 +14,7 @@ export default function SlotsRow({
     slotRefs: React.RefObject<Record<number, HTMLDivElement>>;
     slotsCanBeAttacked?: SlotType[];
     attackingCard?: number | null;
-    target: 'player' | 'computer';
+    target: PlayerType;
     onAttack?: (slotId: number) => void;
     attackingCards: SlotType[];
 }) {

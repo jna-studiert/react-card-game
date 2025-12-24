@@ -1,16 +1,15 @@
 import './styles.css';
-import StartModal from '../modal/StartModal';
+import GameModal from '../modal/GameModal';
 import SlotsRow from './SlotsRow';
 import Deck from './decks/Deck';
 import AnimationLayer from '../common/animations/AnimationLayer';
 import { useGameLogic } from '@/hooks/useGameLogic';
-import type { SlotType } from '@/utils/types';
+import { MAX_POINTS, type PlayerType, type SlotType } from '@/utils/types';
 import DiscardDeck from './decks/DiscardDeck';
 import LivePoints from './live-points/LivePoints';
-import { MAX_POINTS } from '@/hooks/gameReducer';
 
 interface FieldSectionProps {
-    target: 'player' | 'computer';
+    target: PlayerType;
     deckRef: React.RefObject<HTMLDivElement | null>;
     drawnCardRef: React.RefObject<HTMLDivElement | null>;
     discardDeckRef: React.RefObject<HTMLDivElement | null>;
@@ -100,7 +99,8 @@ export default function Field() {
         playerDeckRef,
         playerDrawnCardRef,
         playerDiscardDeckRef,
-        showModal,
+        modalMode,
+        setModalMode,
         playerAnimatedCards,
         computerAnimatedCards,
         computerDrawnCard,
@@ -121,11 +121,19 @@ export default function Field() {
         showDrawCardButton,
         playerPoints,
         computerPoints,
+        winner,
     } = useGameLogic();
 
     return (
         <div className="field flex flex-col min-h-screen p-8 gap-10 relative">
-            {showModal && <StartModal onFinish={handleStart} />}
+            {!!modalMode && (
+                <GameModal
+                    onStartGame={handleStart}
+                    winner={winner}
+                    mode={modalMode}
+                    onChangeMode={setModalMode}
+                />
+            )}
             <AnimationLayer
                 computerAnimatedCards={computerAnimatedCards}
                 playerAnimatedCards={playerAnimatedCards}
@@ -149,14 +157,14 @@ export default function Field() {
             {showDrawCardButton && (
                 <button
                     onClick={handleDrawPlayerCard}
-                    className="absolute bottom-8 left-1/2 -translate-x-1/2 button-primary w-48"
+                    className="absolute bottom-8 left-1/2 -translate-x-1/2 btn-primary w-48"
                 >
                     Вытянуть карту
                 </button>
             )}
             {showEndTurnButton && (
                 <button
-                    className="absolute bottom-8 left-1/2 -translate-x-1/2 button-primary w-48"
+                    className="absolute bottom-8 left-1/2 -translate-x-1/2 btn-primary w-48"
                     onClick={handlePlayerEndTurn}
                 >
                     Завершить ход

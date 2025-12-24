@@ -9,6 +9,7 @@ export const calculateAnimationCoordinates = (
         target = 'player',
         animationType,
         animationSpeed = 800,
+        animationDelay = 0,
     } = config;
 
     const fieldRect = startRef.closest('.field')?.getBoundingClientRect();
@@ -31,6 +32,8 @@ export const calculateAnimationCoordinates = (
 
     switch (animationType) {
         case 'deal':
+        case 'discard':
+        case 'attack':
             if (endRef) {
                 const endRect = endRef.getBoundingClientRect();
                 targetX = endRect.left - fieldRect.left;
@@ -46,6 +49,7 @@ export const calculateAnimationCoordinates = (
                     targetPosition: { x: translateX, y: translateY },
                     size: cardSize,
                     duration: distance / animationSpeed,
+                    delay: animationDelay,
                 };
             }
             break;
@@ -62,6 +66,7 @@ export const calculateAnimationCoordinates = (
                 targetPosition: { x: 0, y: targetY },
                 size: cardSize,
                 duration: animationSpeed / 1000,
+                delay: animationDelay,
             };
     }
 

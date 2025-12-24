@@ -1,26 +1,17 @@
 import { useRef, useEffect, useReducer } from 'react';
-import type { AnimatedCardType } from '@/utils/types';
+import type {
+    AnimatedCardType,
+    GameModalMode,
+    PlayerType,
+} from '@/utils/types';
 import { checkCanAttack, checkMinSlot } from '@/utils/functions';
 import { calculateAnimationCoordinates } from '@/utils/animationCalculation';
-import { gameReducer, initialState, type GamePhase } from './gameReducer';
+import { gameReducer, initialState } from './gameReducer';
 
 export const useGameLogic = () => {
     const [state, dispatch] = useReducer(gameReducer, {
         ...initialState,
     });
-
-    useEffect(() => {
-        console.log('КОЛОДА ИГРОКА: ', state.playerDeck);
-    }, [state.playerDeck]);
-    useEffect(() => {
-        console.log('КОЛОДА КОМПА: ', state.computerDeck);
-    }, [state.computerDeck]);
-    useEffect(() => {
-        console.log('КОЛОДА СБРОСА ИГРОКА: ', state.playerDiscardDeck);
-    }, [state.playerDiscardDeck]);
-    useEffect(() => {
-        console.log('КОЛОДА СБРОСА КОМПА: ', state.computerDiscardDeck);
-    }, [state.computerDiscardDeck]);
 
     const computerSlotRefs = useRef<Record<number, HTMLDivElement>>({});
     const computerDeckRef = useRef<HTMLDivElement>(null);
@@ -32,17 +23,22 @@ export const useGameLogic = () => {
     const playerDrawnCardRef = useRef<HTMLDivElement>(null);
     const playerDiscardDeckRef = useRef<HTMLDivElement>(null);
 
-    const handleStart = (first: 'player' | 'computer') => {
+    const setModalMode = (mode: GameModalMode) => {
         dispatch({
-            type: 'SET_BUTTONS_VISIBILITY',
-            payload: { modal: false },
+            type: 'SET_MODAL_MODE',
+            payload: mode,
         });
+    };
+
+    const handleStart = (first: PlayerType) => {
+        dispatch({ type: 'SET_MODAL_MODE', payload: null });
 
         dispatch({
             type: 'SET_GAME_PHASE',
-            payload:
-                first === 'player' ? 'playerTurn_draw' : 'computerTurn_draw',
+            payload: 'draw',
         });
+
+        dispatch({ type: 'SET_WHOS_TURN', payload: first });
 
         dispatch({
             type: 'SET_BUTTONS_VISIBILITY',
@@ -50,7 +46,7 @@ export const useGameLogic = () => {
         });
     };
 
-    const dealCards = (target: 'player' | 'computer'): Promise<void> => {
+    const dealCards = (target: PlayerType): Promise<void> => {
         return new Promise((resolve) => {
             const { deck, slots, slotRefs, deckRef } =
                 target === 'player'
@@ -167,7 +163,7 @@ export const useGameLogic = () => {
         });
     };
 
-    const drawCard = (target: 'player' | 'computer'): Promise<number> => {
+    const drawCard = (target: PlayerType): Promise<number> => {
         return new Promise((resolve) => {
             const { deck, deckRef } =
                 target === 'player'
@@ -232,23 +228,21 @@ export const useGameLogic = () => {
         });
     };
 
-    const handleDrawCard = async (target: 'player' | 'computer') => {
+    const handleDrawCard = async (target: PlayerType) => {
         dispatch({
             type: 'SET_BUTTONS_VISIBILITY',
             payload: { draw: false },
         });
 
-        const { drawnCard, defenseSlots, attackGamePhase } =
+        const { drawnCard, defenseSlots } =
             target === 'player'
                 ? {
                       drawnCard: await drawCard('player'),
                       defenseSlots: state.computerDefenseSlots,
-                      attackGamePhase: 'playerTurn_attack' as GamePhase,
                   }
                 : {
                       drawnCard: await drawCard('computer'),
                       defenseSlots: state.playerDefenseSlots,
-                      attackGamePhase: 'computerTurn_attack' as GamePhase,
                   };
 
         const availableDefenseSlots = defenseSlots.filter(
@@ -259,18 +253,18 @@ export const useGameLogic = () => {
                 )
         );
 
-        if (drawnCard === -1) {
-            target === 'player'
-                ? dispatch({
-                      type: 'SET_BUTTONS_VISIBILITY',
-                      payload: { end: true },
-                  })
-                : dispatch({
-                      type: 'SET_GAME_PHASE',
-                      payload: 'computerTurn_end',
-                  });
-            return;
-        }
+        // if (drawnCard === -1) {
+        //     target === 'player'
+        //         ? dispatch({
+        //               type: 'SET_BUTTONS_VISIBILITY',
+        //               payload: { end: true },
+        //           })
+        //         : dispatch({
+        //               type: 'SET_GAME_PHASE',
+        //               payload: 'computerTurn_end',
+        //           });
+        //     return;
+        // }
 
         if (checkMinSlot(availableDefenseSlots, drawnCard)) {
             const { drawnCardRef, targetDeckRef } =
@@ -289,11 +283,9 @@ export const useGameLogic = () => {
                     type: 'ADD_TO_DECK',
                     payload: { target, cards: [drawnCard] },
                 });
-                const redrawPhase: GamePhase =
-                    target === 'player'
-                        ? 'playerTurn_redraw'
-                        : 'computerTurn_redraw';
-                dispatch({ type: 'SET_GAME_PHASE', payload: redrawPhase });
+
+                dispatch({ type: 'SET_WHOS_TURN', payload: target });
+                dispatch({ type: 'SET_GAME_PHASE', payload: 'redraw' });
                 return;
             }
 
@@ -301,7 +293,7 @@ export const useGameLogic = () => {
                 const coordinates = calculateAnimationCoordinates({
                     startRef: drawnCardRef,
                     endRef: targetDeckRef,
-                    animationSpeed: 500,
+                    animationSpeed: 200,
                     animationType: 'deal',
                 });
 
@@ -309,6 +301,7 @@ export const useGameLogic = () => {
                     id: Date.now(),
                     cardValue: drawnCard,
                     ...coordinates,
+                    delay: 0.8,
                     animationType: 'discard',
 
                     onAnimationEnd: () => {
@@ -322,14 +315,8 @@ export const useGameLogic = () => {
                             payload: { target, cards: [] },
                         });
 
-                        const redrawPhase: GamePhase =
-                            target === 'player'
-                                ? 'playerTurn_redraw'
-                                : 'computerTurn_redraw';
-                        dispatch({
-                            type: 'SET_GAME_PHASE',
-                            payload: redrawPhase,
-                        });
+                        dispatch({ type: 'SET_WHOS_TURN', payload: target });
+                        dispatch({ type: 'SET_GAME_PHASE', payload: 'redraw' });
 
                         resolve();
                     },
@@ -356,7 +343,7 @@ export const useGameLogic = () => {
                 type: 'SET_SLOTS_CAN_BE_ATTACKED',
                 payload: canAttackArray,
             });
-            dispatch({ type: 'SET_GAME_PHASE', payload: attackGamePhase });
+            dispatch({ type: 'SET_GAME_PHASE', payload: 'attack' });
         } else {
             target === 'player'
                 ? dispatch({
@@ -365,36 +352,25 @@ export const useGameLogic = () => {
                   })
                 : dispatch({
                       type: 'SET_GAME_PHASE',
-                      payload: 'computerTurn_end',
+                      payload: 'end',
                   });
         }
     };
 
-    const handleAttack = (
-        target: 'player' | 'computer',
-        targetSlotId?: number
-    ) => {
-        const {
-            drawnCard,
-            drawnCardRef,
-            defenseSlots,
-            slotRefs,
-            nextDrawPhase,
-        } =
+    const handleAttack = (target: PlayerType, targetSlotId?: number) => {
+        const { drawnCard, drawnCardRef, defenseSlots, slotRefs } =
             target === 'player'
                 ? {
                       drawnCard: state.playerDrawnCard,
                       drawnCardRef: playerDrawnCardRef,
                       defenseSlots: state.computerDefenseSlots,
                       slotRefs: computerSlotRefs,
-                      nextDrawPhase: 'playerTurn_draw' as GamePhase,
                   }
                 : {
                       drawnCard: state.computerDrawnCard,
                       drawnCardRef: computerDrawnCardRef,
                       defenseSlots: state.playerDefenseSlots,
                       slotRefs: playerSlotRefs,
-                      nextDrawPhase: 'computerTurn_draw' as GamePhase,
                   };
 
         if (
@@ -458,13 +434,15 @@ export const useGameLogic = () => {
                           })
                         : dispatch({
                               type: 'SET_GAME_PHASE',
-                              payload: 'computerTurn_end',
+                              payload: 'end',
                           });
-                else
+                else {
                     dispatch({
                         type: 'SET_GAME_PHASE',
-                        payload: nextDrawPhase,
+                        payload: 'draw',
                     });
+                    dispatch({ type: 'SET_WHOS_TURN', payload: target });
+                }
             },
         };
         dispatch({
@@ -478,10 +456,10 @@ export const useGameLogic = () => {
             type: 'SET_BUTTONS_VISIBILITY',
             payload: { end: false },
         });
-        dispatch({ type: 'SET_GAME_PHASE', payload: 'playerTurn_end' });
+        dispatch({ type: 'SET_GAME_PHASE', payload: 'end' });
     };
 
-    const handleEndTurn = (target: 'player' | 'computer') => {
+    const handleEndTurn = (target: PlayerType) => {
         let completedCount = 0;
 
         const {
@@ -685,17 +663,15 @@ export const useGameLogic = () => {
                             type: 'SET_ANIMATED_CARDS',
                             payload: { target, cards: [] },
                         });
-                        dealCards(
-                            target === 'player' ? 'computer' : 'player'
-                        ).then(() =>
-                            dispatch({
-                                type: 'SET_GAME_PHASE',
-                                payload:
-                                    target === 'player'
-                                        ? 'computerTurn_draw'
-                                        : 'playerTurn_draw',
-                            })
-                        );
+
+                        const next =
+                            target === 'player' ? 'computer' : 'player';
+                        dispatch({ type: 'SET_WHOS_TURN', payload: next });
+
+                        dispatch({
+                            type: 'SET_GAME_PHASE',
+                            payload: 'dealing',
+                        });
                     }
                 },
             };
@@ -714,44 +690,47 @@ export const useGameLogic = () => {
                         dealCards('player'),
                         dealCards('computer'),
                     ]);
+
+                    if (!!state.whosTurn)
+                        dispatch({ type: 'SET_GAME_PHASE', payload: 'draw' });
+
                     break;
-                case 'playerTurn_draw':
+                case 'draw':
                     dispatch({
                         type: 'SET_BUTTONS_VISIBILITY',
-                        payload: { draw: true },
+                        payload: { draw: state.whosTurn === 'player' },
                     });
+                    if (state.whosTurn === 'computer')
+                        setTimeout(() => handleDrawCard(state.whosTurn!), 1000);
+
                     break;
-                case 'computerTurn_redraw':
-                    dispatch({
-                        type: 'SET_GAME_PHASE',
-                        payload: 'computerTurn_draw',
-                    });
+                case 'redraw':
+                    handleDrawCard(state.whosTurn!);
                     break;
-                case 'playerTurn_redraw':
-                    handleDrawCard('player');
+                case 'attack':
+                    if (state.whosTurn === 'computer')
+                        setTimeout(() => handleAttack(state.whosTurn!), 1000);
                     break;
-                case 'playerTurn_end':
-                    handleEndTurn('player');
+                case 'end':
+                    if (state.whosTurn === 'computer')
+                        setTimeout(() => handleEndTurn(state.whosTurn!), 1000);
+                    else handleEndTurn(state.whosTurn!);
                     break;
-                case 'computerTurn_draw':
-                    dispatch({
-                        type: 'SET_BUTTONS_VISIBILITY',
-                        payload: { draw: false },
-                    });
-                    setTimeout(() => handleDrawCard('computer'), 1000);
-                    break;
-                case 'computerTurn_attack':
-                    setTimeout(() => handleAttack('computer'), 1000);
-                    break;
-                case 'computerTurn_end':
-                    setTimeout(() => handleEndTurn('computer'), 1000);
-                    break;
-                case 'resolveTurn':
+                case 'gameOver':
+                    console.log(state.winner, ' победил');
                     break;
             }
         };
 
         handleGamePhase();
+    }, [state.gamePhase]);
+
+    useEffect(() => {
+        console.log('сейчас ходит ', state.whosTurn);
+    }, [state.whosTurn]);
+
+    useEffect(() => {
+        console.log('фаза игры ', state.gamePhase);
     }, [state.gamePhase]);
 
     return {
@@ -763,7 +742,8 @@ export const useGameLogic = () => {
         playerDeckRef,
         playerDrawnCardRef,
         playerDiscardDeckRef,
-        showModal: state.showModal,
+        modalMode: state.modalMode,
+        setModalMode,
         playerAnimatedCards: state.playerAnimatedCards,
         computerAnimatedCards: state.computerAnimatedCards,
         computerDrawnCard: state.computerDrawnCard,
@@ -784,5 +764,6 @@ export const useGameLogic = () => {
         showDrawCardButton: state.showDrawCardButton,
         playerPoints: state.playerPoints,
         computerPoints: state.computerPoints,
+        winner: state.winner,
     };
 };

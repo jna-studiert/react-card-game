@@ -1,3 +1,4 @@
+import type { PlayerType } from '@/utils/types';
 import Card from '../../card/Card';
 import './styles.css';
 
@@ -10,7 +11,7 @@ export default function CardFan({
     cards: number[];
     isVisible: boolean;
     fanOrigin?: 'middle' | 'side';
-    target: 'player' | 'computer';
+    target: PlayerType;
 }) {
     const MAX_SPREAD = fanOrigin === 'middle' ? 180 : 120;
 
